@@ -3,6 +3,8 @@ javamagazin-netty-echo
 
 Das hier gezeigte Programm ist Bestandteil des Java Magazin Artikels "Netty - Network Programming the-easy-way".
 
+http://www.javamagazin.de/
+
 Starten des Servers
 =================
 Der Server kann via mvn gestartet werden. Hierbei kann -DserverPort= verwendet werden um den 
