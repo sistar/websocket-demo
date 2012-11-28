@@ -52,21 +52,24 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
-            log.info("HTTP REQUEST"+((HttpRequest) msg).getUri()+((HttpRequest) msg).getMethod()+((HttpRequest) msg).getHeaders());
+            log.info("http req"+((HttpRequest) msg).getUri()+((HttpRequest) msg).getMethod()+((HttpRequest) msg).getHeaders());
             handleHttpRequest(ctx, (HttpRequest) msg);
         } else {
-            log.info("NON HTTP REQ"+msg);
+
             final Channel senderChannel = ctx.getChannel();
             if (msg instanceof WebSocketFrame) {
+                log.info("ws req"+msg);
                 /*for (Channel channel : wsGroup) {
                     if(! channel.equals(senderChannel))  {
                         channel.write(msg);
                     }
                 }*/
                 // will not work because of sending to myself :
-                wsGroup.write(msg);
+                //wsGroup.write(msg);
+                senderChannel.write(msg);
             } else {
                 // Ungueltige Nachricht, somit schliessen des Channel's
+                log.error("INVALID req"+msg);
                 ctx.getChannel().close();
             }
         }
