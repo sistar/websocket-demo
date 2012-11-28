@@ -24,7 +24,7 @@ import java.util.Random;
 public class WebSocketEchoServer {
     private static final String WEBSOCKET_PATH = "/ws";
     private final ChannelGroup group = new DefaultChannelGroup();
-    private Map<String, Integer> clientToChannel = new HashMap<String, Integer>();
+
 
     private final int port;
     Logger log = LoggerFactory.getLogger(this.getClass());
@@ -38,7 +38,7 @@ public class WebSocketEchoServer {
 
         ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory());
 
-        bootstrap.setPipelineFactory(new WebSocketPipelineFactory(group,clientToChannel));
+        bootstrap.setPipelineFactory(new WebSocketPipelineFactory(group));
         // Bind die Lokale Adresse
         final Channel bind = bootstrap.bind(new InetSocketAddress(port));
         log.info("starting websocket server on port {} ",port);
@@ -58,6 +58,7 @@ public class WebSocketEchoServer {
 
                         final Random random = new Random();
                         final int i = random.nextInt(group.size()+1);
+
                         final Channel channel = group.find(i);
                         if(channel != null){
                             log.info("msg for client {}",channel.getId());

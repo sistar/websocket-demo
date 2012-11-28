@@ -19,12 +19,12 @@ import java.util.Map;
  */
 public class WebSocketPipelineFactory implements ChannelPipelineFactory {
     private final ChannelGroup group;
-    private final Map<String, Integer> clientToChannel;
 
-    public WebSocketPipelineFactory(ChannelGroup group,Map<String,Integer> clientToChannel) {
+
+    public WebSocketPipelineFactory(ChannelGroup group) {
 
         this.group = group;
-        this.clientToChannel = clientToChannel;
+
     }
     
     @Override
@@ -43,7 +43,7 @@ public class WebSocketPipelineFactory implements ChannelPipelineFactory {
         
         // Handler der den richtigen WebSocket Handshaker einfuegt
         // und die Index-Seite zur Verfügung stellt
-        pipeline.addLast("handler", new WebSocketServerHandler(group,clientToChannel));
+        pipeline.addLast("handler", new WebSocketServerHandler(group));
         return pipeline;
     }
 }

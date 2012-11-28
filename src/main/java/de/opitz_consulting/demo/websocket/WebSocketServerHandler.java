@@ -30,20 +30,23 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     private static final String WEBSOCKET_PATH = "/ws";
     private final ChannelGroup wsGroup;
-    private Map<String, Integer> clientToChannel;
 
-    public WebSocketServerHandler(ChannelGroup wsGroup, Map<String, Integer> clientToChannel) {
+
+    public WebSocketServerHandler(ChannelGroup wsGroup) {
         this.wsGroup = wsGroup;
-        this.clientToChannel = clientToChannel;
+
     }
 
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         super.channelConnected(ctx, e);
-
     }
 
-
+    @Override
+    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        this.wsGroup.remove(e.getChannel());
+        super.channelDisconnected(ctx, e);
+    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
