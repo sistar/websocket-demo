@@ -52,13 +52,13 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
-            log.info("http req"+((HttpRequest) msg).getUri()+((HttpRequest) msg).getMethod()+((HttpRequest) msg).getHeaders());
+            log.info("http req {} {} {}",((HttpRequest) msg).getUri(),((HttpRequest) msg).getMethod(),((HttpRequest) msg).getHeaders());
             handleHttpRequest(ctx, (HttpRequest) msg);
         } else {
 
             final Channel senderChannel = ctx.getChannel();
             if (msg instanceof WebSocketFrame) {
-                log.info("ws req"+msg);
+                log.info("ws req {} ",msg);
                 /*for (Channel channel : wsGroup) {
                     if(! channel.equals(senderChannel))  {
                         channel.write(msg);
@@ -66,16 +66,17 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                 }*/
                 // will not work because of sending to myself :
                 //wsGroup.write(msg);
+                log.debug("sending {} to {}",msg,senderChannel);
                 senderChannel.write(msg);
             } else {
                 // Ungueltige Nachricht, somit schliessen des Channel's
-                log.error("INVALID req"+msg);
+                log.error("INVALID req {}",msg);
                 ctx.getChannel().close();
             }
         }
     }
 
-    private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+    private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
         // Ueberpruefen ob der Request ein GET ist oder nicht, wenn nicht 
         // kann dieser nicht bearbeitet werden. Somit senden eines 403 Status-Code‘s
         if (req.getMethod() != HttpMethod.GET) {
@@ -93,11 +94,11 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             // Ueberpruefen ob ein geeigneter WebSocketServerHandshaker fuer den Request
             // gefunden worden konnte. Wenn nicht wird der Client darueber informiert
             if (handshaker == null) {
-                log.info("NO HANDSHAKER FOUND");
+                log.error("NO HANDSHAKER FOUND");
                 wsFactory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
             } else {
                 // fuehre den Handshake
-                log.info("HANDSHAKE(2)");
+
                 handshaker.handshake(ctx.getChannel(), req).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
@@ -109,6 +110,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                         } else {
                             // Handshake hat nicht geklappt. Feuere einen
                             // exceptionCaught event
+                            log.error("NO HANDSHAKE FAILED {} ", ctx.getChannel());
                             Channels.fireExceptionCaught(future.getChannel(), future.getCause());
                         }
                     }

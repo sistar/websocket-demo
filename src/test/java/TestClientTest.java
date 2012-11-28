@@ -4,6 +4,8 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.cgbystrom.netty.http.websocket.WebSocketCallback;
 import se.cgbystrom.netty.http.websocket.WebSocketClient;
 import se.cgbystrom.netty.http.websocket.WebSocketClientFactory;
@@ -15,9 +17,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /*
  * User: rsi
@@ -25,18 +25,22 @@ import static org.junit.Assert.assertTrue;
  * Time: 5:01 PM
  */
 public class TestClientTest {
+    Logger log = LoggerFactory.getLogger(this.getClass());
+    final Multiset<Long> elapsedSet = TreeMultiset.create();
+    final AtomicInteger messageCounter = new AtomicInteger();
+
     @org.junit.Test
     public void testConnect() throws Exception {
         final WebSocketClientFactory clientFactory = new WebSocketClientFactory();
         final Set<TestClient> webSocketClients = new CopyOnWriteArraySet<TestClient>();
+
         final String port = "80";
 
-        Multiset<Long> elapsedSet = TreeMultiset.create();
 
         //ExecutorService executorService = new ThreadPoolExecutor(8, 8, 5, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(8, true), new ThreadPoolExecutor.CallerRunsPolicy());
         final Random random = new Random();
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
 
 
             final TestClient callback = new TestClient(clientFactory, port, webSocketClients);
@@ -47,24 +51,29 @@ public class TestClientTest {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
                     webSocketClients.add(callback);
-                   // callback.waitForConnected(true);
+                    // callback.waitForConnected(true);
                 }
             });
 
 
-
         }
         final ArrayList<TestClient> testClientsList = new ArrayList<>(webSocketClients);
-        for (int rCounter=0;rCounter<20000;rCounter++){
+        for (int rCounter = 0; rCounter < 20; rCounter++) {
             final int i = random.nextInt(webSocketClients.size());
-            final TestClient testClient =testClientsList.get(i);
+            final TestClient testClient = testClientsList.get(i);
             final long t0 = System.currentTimeMillis();
-            testClient.send(new DefaultWebSocketFrame(TestClient.TEST_MESSAGE));
-            assertEquals(TestClient.TEST_MESSAGE, testClient.waitFor(1));
-            final long t1 = System.currentTimeMillis();
-            final long elapsed = t1 - t0;
-            elapsedSet.add(elapsed);
+            String msg = String.format("client [%s] timestamp [%s]", i, t0);
+            testClient.send(new DefaultWebSocketFrame(msg));
+            testClient.waitFor(new Receiver(msg, t0));
+
         }
+
+        int mCnt = messageCounter.get();
+        while (mCnt > 0 ){
+            log.info("waiting for {} responses", mCnt);
+            Thread.sleep(1000L);
+            mCnt = messageCounter.get();
+        };
 
 
         final Iterator<TestClient> iterator = webSocketClients.iterator();
@@ -77,35 +86,31 @@ public class TestClientTest {
 
 
         //callback.disconnect();
-            //assertFalse(callback.waitForConnected(false));
-            //webSocketClients.remove(callback);
+        //assertFalse(callback.waitForConnected(false));
+        //webSocketClients.remove(callback);
 
         System.out.println(elapsedSet);
 
     }
 
-    private static class TestClient implements WebSocketCallback {
+    private class TestClient implements WebSocketCallback {
+        final Set<Receiver> receivers = new CopyOnWriteArraySet<Receiver>();
         private final WebSocketClient client;
         private final Set<TestClient> webSocketClients;
+        private String expected;
 
 
         private TestClient(WebSocketClientFactory clientFactory, String port, Set<TestClient> webSocketClients) throws URISyntaxException {
             this.webSocketClients = webSocketClients;
-            final String host = "ec2-54-247-47-144.eu-west-1.compute.amazonaws.com";
+            final String host = "ec2-46-137-59-250.eu-west-1.compute.amazonaws.com";
             //final String host = "localhost";
             WebSocketClient client = clientFactory.newClient(new URI("ws://" + host + ":" + port + "/chat"), this);
             this.client = client;
         }
 
-        public String waitFor(int x) {
-            while (counter < x) {
-                try {
-                    Thread.sleep(100L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return messageReceived;
+        public void waitFor(Receiver msg) {
+            this.receivers.add(msg);
+
         }
 
         public boolean waitForConnected(boolean isConnected) {
@@ -119,8 +124,7 @@ public class TestClientTest {
             return connected;
         }
 
-        volatile int counter = 0;
-        public static final String TEST_MESSAGE = "Testing this WebSocket";
+
         volatile boolean connected = false;
         public String messageReceived = null;
 
@@ -139,8 +143,13 @@ public class TestClientTest {
         }
 
         public void onMessage(WebSocketClient client, WebSocketFrame frame) {
-            //System.out.println("Message:" + frame.getTextData());
-            counter++;
+            String message = frame.getTextData();
+            for (Receiver receiver : receivers) {
+                if (receiver.receive(message)) {
+                    receivers.remove(receiver);
+                    messageCounter.decrementAndGet();
+                }
+            }
             messageReceived = frame.getTextData();
         }
 
@@ -155,10 +164,34 @@ public class TestClientTest {
 
         public void send(DefaultWebSocketFrame defaultWebSocketFrame) {
             this.client.send(defaultWebSocketFrame);
+            messageCounter.incrementAndGet();
         }
 
         public void disconnect() {
             this.client.disconnect();
+        }
+    }
+
+    private class Receiver {
+
+        private final String expected;
+        private final long t0;
+
+        private Receiver(String expected, long t0) {
+            this.expected = expected;
+            this.t0 = t0;
+        }
+
+        public boolean receive(String message) {
+            final long t1 = System.currentTimeMillis();
+            final long elapsed = t1 - t0;
+
+            final boolean msgMatched = this.expected.equals(message);
+            if (msgMatched) {
+                elapsedSet.add(elapsed);
+                return true;
+            }
+            return false;
         }
     }
 }
