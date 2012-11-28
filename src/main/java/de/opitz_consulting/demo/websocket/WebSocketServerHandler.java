@@ -1,22 +1,14 @@
 package de.opitz_consulting.demo.websocket;
 
 
-import me.normanmaurer.javamagazin.netty.examples.ws.WebSocketServerIndexPage;
-import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.*;
-import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import org.jboss.netty.handler.codec.http.websocketx.*;
 import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import java.util.Map;
 
 /**
  * {@link org.jboss.netty.channel.SimpleChannelUpstreamHandler} implementation der den WebSocket Handshake durchfuert
@@ -52,13 +44,27 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
-            log.info("http req {} {} {}",((HttpRequest) msg).getUri(),((HttpRequest) msg).getMethod(),((HttpRequest) msg).getHeaders());
+            log.info("http req {} {} {}", ((HttpRequest) msg).getUri(), ((HttpRequest) msg).getMethod(), ((HttpRequest) msg).getHeaders());
             handleHttpRequest(ctx, (HttpRequest) msg);
         } else {
 
             final Channel senderChannel = ctx.getChannel();
+
+
             if (msg instanceof WebSocketFrame) {
-                log.info("ws req {} ",msg);
+                log.info("ws req {} ", msg);
+                WebSocketFrame frame = (WebSocketFrame) msg;
+                if (frame instanceof TextWebSocketFrame) {
+                    TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
+                    System.out.println("WebSocket Client received message: " + textFrame.getText());
+                    log.debug("sending {} to {}", msg, senderChannel);
+                    senderChannel.write(msg);
+                } else if (frame instanceof PongWebSocketFrame) {
+                    System.out.println("WebSocket Client received pong");
+                } else if (frame instanceof CloseWebSocketFrame) {
+                    System.out.println("WebSocket Client received closing");
+                    senderChannel.close();
+                }
                 /*for (Channel channel : wsGroup) {
                     if(! channel.equals(senderChannel))  {
                         channel.write(msg);
@@ -66,11 +72,10 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                 }*/
                 // will not work because of sending to myself :
                 //wsGroup.write(msg);
-                log.debug("sending {} to {}",msg,senderChannel);
-                senderChannel.write(msg);
+
             } else {
                 // Ungueltige Nachricht, somit schliessen des Channel's
-                log.error("INVALID req {}",msg);
+                log.error("INVALID req {}", msg);
                 ctx.getChannel().close();
             }
         }
