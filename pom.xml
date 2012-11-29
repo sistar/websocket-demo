@@ -160,7 +160,7 @@
                         <configuration>
                             <executable>java</executable>
                             <arguments>
-                                <argument>-Dkeystore.file.path=~/ssl-keystore/mySrvKeystore</argument>
+                                <argument>-Dkeystore.file.path=/home/ubuntu/ssl-keystore/mySrvKeystore</argument>
                                 <argument>-Dkeystore.file.password=diplom</argument>
                                 <argument>-classpath</argument>
                                 <classpath/>
