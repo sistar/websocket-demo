@@ -46,8 +46,8 @@ public final class WebSocketSslServerSslContext {
             }
 
             try {
-                String keyStoreFilePath = System.getProperty("keystorefilepath");
-                String keyStoreFilePassword = System.getProperty("keystorefilepassword");
+                String keyStoreFilePath = System.getProperty("keystore.file.path");
+                String keyStoreFilePassword = System.getProperty("keystore.file.password");
 
                 KeyStore ks = KeyStore.getInstance("JKS");
                 FileInputStream fin = new FileInputStream(keyStoreFilePath);
