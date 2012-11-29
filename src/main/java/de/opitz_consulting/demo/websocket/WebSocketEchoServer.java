@@ -17,7 +17,7 @@ import java.util.Random;
  * Time: 12:01 PM
  */
 public class WebSocketEchoServer {
-
+    private static final String WEBSOCKET_PATH = "/ws";
     private final ChannelGroup group = new DefaultChannelGroup();
 
 
@@ -71,18 +71,24 @@ public class WebSocketEchoServer {
     }
 
     public static void main(String[] args) {
-        int wsPort=8443;
-        if (args.length > 0) {
+        int wsPort;
+        int udpPort;
+        if (args.length < 2) {
+            //      wsPort = 8080;
+            wsPort = 8443;
+
+        } else {
             wsPort = Integer.parseInt(args[0]);
+            udpPort = Integer.parseInt(args[1]);
         }
 
-        String keyStoreFilePath = System.getProperty("keystorefilepath");
+        String keyStoreFilePath = System.getProperty("keystore.file.path");
         if (keyStoreFilePath == null || keyStoreFilePath.isEmpty()) {
-            System.out.println("ERROR: System property keystorefilepath not set. Exiting now!");
+            System.out.println("ERROR: System property keystore.file.path not set. Exiting now!");
             System.exit(1);
         }
 
-        String keyStoreFilePassword = System.getProperty("keystorefilepassword");
+        String keyStoreFilePassword = System.getProperty("keystore.file.password");
         if (keyStoreFilePassword == null || keyStoreFilePassword.isEmpty()) {
             System.out.println("ERROR: System property keystore.file.password not set. Exiting now!");
             System.exit(1);
@@ -90,4 +96,6 @@ public class WebSocketEchoServer {
 
         new WebSocketEchoServer(wsPort).startUp();
     }
+
+
 }
