@@ -127,7 +127,6 @@
     </dependencies>
 
 
-
     <profiles>
         <profile>
             <id>server</id>
@@ -140,6 +139,29 @@
                         <configuration>
                             <executable>java</executable>
                             <arguments>
+                                <argument>-classpath</argument>
+                                <classpath/>
+                                <argument>de.opitz_consulting.demo.websocket.WebSocketEchoServer</argument>
+                                <argument>${serverPort}</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>linuxServer</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-Dkeystore.file.path=~/ssl-keystore/mySrvKeystore</argument>
+                                <argument>-Dkeystore.file.password=diplom</argument>
                                 <argument>-classpath</argument>
                                 <classpath/>
                                 <argument>de.opitz_consulting.demo.websocket.WebSocketEchoServer</argument>
