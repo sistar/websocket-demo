@@ -10,23 +10,16 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * {@link org.jboss.netty.channel.SimpleChannelUpstreamHandler} implementation der den WebSocket Handshake durchfuert
- * sowie das Abhandeln von {@link org.jboss.netty.handler.codec.http.HttpRequest}'s.
- *
- * @author Norman Maurer <norman@apache.org>
- */
+
 public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private static final String WEBSOCKET_PATH = "/ws";
+    private static final String WEBSOCKET_PATH = "/wss";
     private final ChannelGroup wsGroup;
-
 
     public WebSocketServerHandler(ChannelGroup wsGroup) {
         this.wsGroup = wsGroup;
-
     }
 
     @Override

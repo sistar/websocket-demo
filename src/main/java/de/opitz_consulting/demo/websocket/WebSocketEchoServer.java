@@ -2,9 +2,6 @@ package de.opitz_consulting.demo.websocket;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
@@ -12,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -22,7 +17,7 @@ import java.util.Random;
  * Time: 12:01 PM
  */
 public class WebSocketEchoServer {
-    private static final String WEBSOCKET_PATH = "/ws";
+
     private final ChannelGroup group = new DefaultChannelGroup();
 
 
@@ -76,24 +71,18 @@ public class WebSocketEchoServer {
     }
 
     public static void main(String[] args) {
-        int wsPort;
-        int udpPort;
-        if (args.length < 2) {
-            //      wsPort = 8080;
-            wsPort = 8443;
-
-        } else {
+        int wsPort=8443;
+        if (args.length > 0) {
             wsPort = Integer.parseInt(args[0]);
-            udpPort = Integer.parseInt(args[1]);
         }
 
-        String keyStoreFilePath = System.getProperty("keystore.file.path");
+        String keyStoreFilePath = System.getProperty("keystorefilepath");
         if (keyStoreFilePath == null || keyStoreFilePath.isEmpty()) {
-            System.out.println("ERROR: System property keystore.file.path not set. Exiting now!");
+            System.out.println("ERROR: System property keystorefilepath not set. Exiting now!");
             System.exit(1);
         }
 
-        String keyStoreFilePassword = System.getProperty("keystore.file.password");
+        String keyStoreFilePassword = System.getProperty("keystorefilepassword");
         if (keyStoreFilePassword == null || keyStoreFilePassword.isEmpty()) {
             System.out.println("ERROR: System property keystore.file.password not set. Exiting now!");
             System.exit(1);
@@ -101,6 +90,4 @@ public class WebSocketEchoServer {
 
         new WebSocketEchoServer(wsPort).startUp();
     }
-
-
 }

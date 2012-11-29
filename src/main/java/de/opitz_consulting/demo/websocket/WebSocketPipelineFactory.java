@@ -11,7 +11,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 
 import javax.net.ssl.SSLEngine;
-import java.util.Map;
 
 /**
  * {@link org.jboss.netty.channel.ChannelPipelineFactory} die alle noetigen {@link org.jboss.netty.channel.ChannelHandler} in die erzeugte
@@ -32,16 +31,12 @@ public class WebSocketPipelineFactory implements ChannelPipelineFactory {
     @Override
     public ChannelPipeline getPipeline() throws Exception {
 
-        SSLEngine engine =
-                SecureChatSslContextFactory.getServerContext().createSSLEngine();
-        engine.setUseClientMode(false);
-
-
-
-        // Pipeline Object erstellen
         ChannelPipeline pipeline = Channels.pipeline();
+
+        SSLEngine engine = WebSocketSslServerSslContext.getInstance().getServerContext().createSSLEngine();
+        engine.setUseClientMode(false);
         pipeline.addLast("ssl", new SslHandler(engine));
-        
+
         // Decoder der ChannelBuffer zu HttpRequest's umwandelt
         pipeline.addLast("reqDecoder", new HttpRequestDecoder());
         

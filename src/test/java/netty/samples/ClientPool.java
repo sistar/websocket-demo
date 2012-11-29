@@ -4,7 +4,6 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
 import de.opitz_consulting.demo.websocket.SecureChatSslContextFactory;
 import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
@@ -15,11 +14,11 @@ import org.jboss.netty.handler.ssl.SslHandler;
 
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientPool {
 
@@ -33,14 +32,17 @@ public class ClientPool {
 
     public ClientPool(URI uri) {
         String protocol = uri.getScheme();
-        if (!protocol.equals("ws")) {
+        if (!protocol.equals("wss")) {
             throw new IllegalArgumentException("Unsupported protocol: " + protocol);
         }
+
         this.uri = uri;
+
         bootstrap = new ClientBootstrap(
                 new NioClientSocketChannelFactory(
                         Executors.newCachedThreadPool(),
                         Executors.newCachedThreadPool()));
+
         bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -104,8 +106,10 @@ public class ClientPool {
         for (WebSocketClientRaw2 raw2 : testClientsList) {
             raw2.close();
         }
+    }
 
-
-
+    public String percentiles(){
+        this.elapsedSet.size();
+        return null;
     }
 }
