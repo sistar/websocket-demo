@@ -62,7 +62,8 @@ public class WebSocketEchoServer {
                         final Channel channel = group.find(i);
                         if(channel != null){
                             log.info("msg for client {}",channel.getId());
-                            channel.write(String.format("msg for client %s",channel.getId())    );
+                            channel.write(String.format("ms" +
+                                    "g for client %s",channel.getId())    );
                         }
 
                     } catch (InterruptedException e) {
@@ -78,12 +79,26 @@ public class WebSocketEchoServer {
         int wsPort;
         int udpPort;
         if (args.length < 2) {
-            wsPort = 8080;
+            //      wsPort = 8080;
+            wsPort = 8443;
 
         } else {
             wsPort = Integer.parseInt(args[0]);
             udpPort = Integer.parseInt(args[1]);
         }
+
+        String keyStoreFilePath = System.getProperty("keystore.file.path");
+        if (keyStoreFilePath == null || keyStoreFilePath.isEmpty()) {
+            System.out.println("ERROR: System property keystore.file.path not set. Exiting now!");
+            System.exit(1);
+        }
+
+        String keyStoreFilePassword = System.getProperty("keystore.file.password");
+        if (keyStoreFilePassword == null || keyStoreFilePassword.isEmpty()) {
+            System.out.println("ERROR: System property keystore.file.password not set. Exiting now!");
+            System.exit(1);
+        }
+
         new WebSocketEchoServer(wsPort).startUp();
     }
 
