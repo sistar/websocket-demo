@@ -3,3 +3,6 @@
 .classpath
 target
 bin
+classes
+.idea
+
