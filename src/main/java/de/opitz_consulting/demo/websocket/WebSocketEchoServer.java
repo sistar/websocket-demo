@@ -17,7 +17,7 @@ import java.util.Random;
  * Time: 12:01 PM
  */
 public class WebSocketEchoServer {
-    private static final String WEBSOCKET_PATH = "/ws";
+    private static final String WEBSOCKET_PATH = "/wss";
     private final ChannelGroup group = new DefaultChannelGroup();
 
 

@@ -13,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 public class SimpleCallbackRawTest {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
-    //final String host = "ec2-46-137-59-250.eu-west-1.compute.amazonaws.com";
-    final String host = "localhost";
+    final String host = "ec2-46-137-30-239.eu-west-1.compute.amazonaws.com";
+    //final String host = "localhost";
     //final String port = "8080";
-    final String port = "8443";
+    final String port = "443";
     final URI uri;
 
     public SimpleCallbackRawTest() throws URISyntaxException {
